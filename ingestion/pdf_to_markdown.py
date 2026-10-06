@@ -59,7 +59,7 @@ class PDFToMarkdownConverter:
 
         return markdown_files
 
-if __name__ == "__main>>":
+if __name__ == "__main__":
     repo_root = Path(__file__).resolve().parents[1]
 
     input_dir = repo_root / "data" / "raw_pdfs"
