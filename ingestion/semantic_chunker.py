@@ -1,11 +1,12 @@
 from pathlib import Path
-
-from langchain_core.documents import Document
-from langchain_experimental.text_splitter import SemanticChunker
+import os
 
 from dotenv import load_dotenv
-load_dotenv()
+from langchain_core.documents import Document
+from langchain_experimental.text_splitter import SemanticChunker
+from langchain_openai import AzureOpenAIEmbeddings
 
+load_dotenv()
 
 
 def read_markdown(markdown_file: str) -> str:
@@ -44,25 +45,35 @@ def chunk_markdown(
 
     return splitter.create_documents([markdown_content])
 
+
 if __name__ == "__main__":
-    import os
-    from langchain_openai import AzureOpenAIEmbeddings
 
     endpoint = os.getenv("AZURE_OPENAI_ENDPOINT")
     api_key = os.getenv("AZURE_OPENAI_API_KEY")
-    api_version = os.getenv("AZURE_OPENAI_API_EMBEDDING_VERSION", "2023-05-15")
-    embedding_model = os.getenv("AZURE_OPENAI_EMBEDDING_DEPLOYMENT")
+    api_version = os.getenv(
+        "AZURE_OPENAI_API_EMBEDDING_VERSION"
+    )
+    embedding_deployment = os.getenv(
+        "AZURE_OPENAI_EMBEDDING_DEPLOYMENT"
+    )
 
     if not endpoint or not api_key:
         raise RuntimeError(
-            "Missing Azure OpenAI credentials. Set AZURE_OPENAI_ENDPOINT and AZURE_OPENAI_API_KEY in .env."
+            "Missing Azure OpenAI credentials. "
+            "Set AZURE_OPENAI_ENDPOINT and "
+            "AZURE_OPENAI_API_KEY in .env."
+        )
+
+    if not embedding_deployment:
+        raise RuntimeError(
+            "Missing AZURE_OPENAI_EMBEDDING_DEPLOYMENT in .env."
         )
 
     embeddings = AzureOpenAIEmbeddings(
-        model = "text-embedding-ada-002",
+        azure_deployment=embedding_deployment,
         azure_endpoint=endpoint,
         api_key=api_key,
-        api_version=api_version
+        api_version=api_version,
     )
 
     markdown_file = "../data/markdown/2024_Apple.md"
