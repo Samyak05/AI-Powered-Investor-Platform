@@ -197,13 +197,13 @@ def main() -> None:
         print("-" * 80)
 
 
-    from database.save_metrics import save_metrics
+    # from database.save_metrics import save_metrics
 
-    save_metrics(
-        company=company,
-        year=year,
-        metrics=results
-    )
+    # save_metrics(
+    #     company=company,
+    #     year=year,
+    #     metrics=results
+    # )
 
 if __name__ == "__main__":
     main()
