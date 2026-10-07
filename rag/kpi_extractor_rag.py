@@ -17,9 +17,8 @@ class FinancialMetrics(BaseModel):
     cash_flow: str | int | None = Field(None, alias="Cash Flow from Operating Activities")
     total_assets: str | int | None = Field(None, alias="Total Assets")
     total_liabilities: str | int | None = Field(None, alias="Total Liabilities")
-    risk_factors: str | list | None = Field(None, alias="Top Risk Factors")
-    growth_drivers: str | list | None = Field(None, alias="Top Growth Drivers")
-
+    risk_factors: list[str] | None = Field(None, alias="Top Risk Factors")
+    growth_drivers: list[str] | None = Field(None, alias="Top Growth Drivers")
 
 class Retriever:
     def __init__(self, client):
@@ -95,7 +94,7 @@ def retrieve_context(
         top_k=20
     )
 
-    print(documents)
+    # print(documents)
 
     return "\n\n".join(
         doc.page_content
@@ -190,21 +189,21 @@ def main() -> None:
         year=year
     )
 
-    # print(f"\nExtracted KPIs for {company} {year}\n")
+    print(f"\nExtracted KPIs for {company} {year}\n")
 
-    # for key, value in results.items():
-    #     print(f"{key}:")
-    #     print(value)
-    #     print("-" * 80)
+    for key, value in results.items():
+        print(f"{key}:")
+        print(value)
+        print("-" * 80)
 
 
-    # from database.save_metrics import save_metrics
+    from database.save_metrics import save_metrics
 
-    # save_metrics(
-    #     company=company,
-    #     year=year,
-    #     metrics=results
-    # )
+    save_metrics(
+        company=company,
+        year=year,
+        metrics=results
+    )
 
 if __name__ == "__main__":
     main()
