@@ -1,31 +1,5 @@
 from sqlalchemy import text
-
 from database.postgres_sql import get_engine
-
-
-def _to_text_list(value):
-    """
-    Convert a value into a list of strings.
-
-    Handles:
-    - None
-    - a single string
-    - list / tuple / set
-    - other values
-
-    This prevents errors such as:
-        TypeError: can only join an iterable
-    """
-    if value is None:
-        return []
-
-    if isinstance(value, str):
-        return [value]
-
-    if isinstance(value, (list, tuple, set)):
-        return [str(item) for item in value if item is not None]
-
-    return [str(value)]
 
 
 def save_metrics(
@@ -71,77 +45,64 @@ def save_metrics(
     )
     """
 
-    # ---------------------------------------------------------
-    # Support both Pydantic model_dump() keys and older aliases
-    # ---------------------------------------------------------
-
-    revenue = (
-        metrics.get("revenue")
-        or metrics.get("Revenue")
-    )
-
-    net_income = (
-        metrics.get("net_income")
-        or metrics.get("Net Income")
-    )
-
-    operating_income = (
-        metrics.get("operating_income")
-        or metrics.get("Operating Income")
-    )
-
-    cash_flow = (
-        metrics.get("cash_flow")
-        or metrics.get("Cash Flow from Operating Activities")
-    )
-
-    total_assets = (
-        metrics.get("total_assets")
-        or metrics.get("Total Assets")
-    )
-
-    total_liabilities = (
-        metrics.get("total_liabilities")
-        or metrics.get("Total Liabilities")
-    )
-
+    # Use both capitalized and lower-case keys from the extraction model
     risk_factors = (
-        metrics.get("risk_factors")
-        or metrics.get("Top Risk Factors")
+        metrics.get("Top Risk Factors")
+        or metrics.get("risk_factors")
+        or []
     )
 
     growth_drivers = (
-        metrics.get("growth_drivers")
-        or metrics.get("Top Growth Drivers")
+        metrics.get("Top Growth Drivers")
+        or metrics.get("growth_drivers")
+        or []
     )
 
-    # ---------------------------------------------------------
-    # Normalize list-based fields
-    # ---------------------------------------------------------
+    # Ensure the values are iterable before using "\n".join()
+    if isinstance(risk_factors, str):
+        risk_factors = [risk_factors]
 
-    risk_factors = _to_text_list(risk_factors)
-    growth_drivers = _to_text_list(growth_drivers)
-
-    # ---------------------------------------------------------
-    # Prepare PostgreSQL parameters
-    # ---------------------------------------------------------
+    if isinstance(growth_drivers, str):
+        growth_drivers = [growth_drivers]
 
     params = {
         "company": company,
-        "year": year,
-        "revenue": revenue,
-        "net_income": net_income,
-        "operating_income": operating_income,
-        "cash_flow": cash_flow,
-        "total_assets": total_assets,
-        "total_liabilities": total_liabilities,
+        "year": str(year),
+
+        "revenue": (
+            metrics.get("Revenue")
+            or metrics.get("revenue")
+        ),
+
+        "net_income": (
+            metrics.get("Net Income")
+            or metrics.get("net_income")
+        ),
+
+        "operating_income": (
+            metrics.get("Operating Income")
+            or metrics.get("operating_income")
+        ),
+
+        "cash_flow": (
+            metrics.get("Cash Flow from Operating Activities")
+            or metrics.get("cash_flow")
+        ),
+
+        "total_assets": (
+            metrics.get("Total Assets")
+            or metrics.get("total_assets")
+        ),
+
+        "total_liabilities": (
+            metrics.get("Total Liabilities")
+            or metrics.get("total_liabilities")
+        ),
+
         "risk_factors": "\n".join(risk_factors),
+
         "growth_drivers": "\n".join(growth_drivers),
     }
-
-    # ---------------------------------------------------------
-    # Insert into PostgreSQL
-    # ---------------------------------------------------------
 
     with engine.begin() as connection:
         connection.execute(text(query), params)
@@ -150,10 +111,6 @@ def save_metrics(
         f"Successfully saved metrics for {company} {year}"
     )
 
-
-# -------------------------------------------------------------
-# Standalone test
-# -------------------------------------------------------------
 
 if __name__ == "__main__":
 
@@ -170,7 +127,7 @@ if __name__ == "__main__":
             "High competition with aggressive pricing, short product life cycles, and rapid technological changes.",
             "Dependence on single or limited sources for certain components, with potential supply shortages.",
             "Exposure to foreign exchange rate fluctuations impacting sales and margins.",
-            "Legal and regulatory challenges, including significant tax disputes such as the State Aid Decision.",
+            "Legal and regulatory challenges, including significant tax disputes such as the State Aid Decision."
         ],
 
         "Top Growth Drivers": [
@@ -178,12 +135,12 @@ if __name__ == "__main__":
             "Higher Mac sales driven by increased laptop demand.",
             "Continued strong iPhone sales performance.",
             "Continued strong iPhone sales performance.",
-            "Strong cash generation enabling capital returns and strategic investment.",
-        ],
+            "Capital return program."
+        ]
     }
 
     save_metrics(
         company="Apple",
         year=2024,
-        metrics=sample_metrics,
+        metrics=sample_metrics
     )
