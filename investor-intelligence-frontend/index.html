@@ -1,0 +1,229 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#f6f8fc" />
+  <title>Investor Intelligence | Dashboard</title>
+  <link rel="stylesheet" href="style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script defer src="app.js"></script>
+</head>
+
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <a class="brand" href="#overview" aria-label="Investor Intelligence home"><span
+          class="brand-mark">I</span><span>Investor<span class="brand-light">Intel</span></span></a>
+      <div class="workspace-label">WORKSPACE</div>
+      <nav class="nav-links" aria-label="Main navigation">
+        <a class="nav-link active" href="#overview"><span class="nav-icon">▦</span>Overview</a>
+        <a class="nav-link" href="#financials"><span class="nav-icon">▤</span>Financial KPIs</a>
+        <a class="nav-link" href="#insights"><span class="nav-icon">◈</span>Company insights</a>
+        <a class="nav-link" href="#upload"><span class="nav-icon">⇧</span>Ingest report</a>
+        <a class="nav-link" href="#analyst"><span class="nav-icon">✳</span>AI analyst</a>
+      </nav>
+      <div class="sidebar-bottom">
+        <div class="connection-card"><span class="status-dot"></span>
+          <div><strong>API connection</strong><small id="apiStatus">Checking backend…</small></div>
+        </div>
+        <div class="sidebar-foot">AI-Powered Investor Intelligence<br><span>Financial data, with context.</span></div>
+      </div>
+    </aside>
+
+    <main class="main-area" id="overview">
+      <header class="topbar">
+        <div>
+          <div class="eyebrow">INVESTMENT RESEARCH / OVERVIEW</div>
+          <h1>Investor intelligence dashboard</h1>
+          <p class="subheading">A clear view of company performance, risks, and opportunities.</p>
+        </div>
+        <div class="topbar-right"><span class="live-pill"><span class="status-dot"></span> Live workspace</span><button
+            class="button button-secondary" id="refreshBtn" type="button">↻ Refresh data</button></div>
+      </header>
+
+      <section class="welcome-row">
+        <div>
+          <h2>Your research at a glance</h2>
+          <p>Financial metrics and qualitative insights extracted from ingested reports.</p>
+        </div>
+        <div class="updated-label" id="lastUpdated">Waiting for data</div>
+      </section>
+
+      <section class="stat-grid" aria-label="Workspace statistics">
+        <article class="stat-card">
+          <div class="stat-top"><span class="stat-title">Companies tracked</span><span class="stat-icon blue">◫</span>
+          </div>
+          <div class="stat-number" id="statsCompanies">—</div>
+          <div class="stat-foot">Unique companies in your reports</div>
+        </article>
+        <article class="stat-card">
+          <div class="stat-top"><span class="stat-title">Reports analyzed</span><span class="stat-icon violet">▤</span>
+          </div>
+          <div class="stat-number" id="statsReports">—</div>
+          <div class="stat-foot">Company and fiscal-year records</div>
+        </article>
+        <article class="stat-card">
+          <div class="stat-top"><span class="stat-title">Revenue records</span><span class="stat-icon green">↗</span>
+          </div>
+          <div class="stat-number" id="statsRevenue">—</div>
+          <div class="stat-foot">Records with extracted revenue</div>
+        </article>
+        <article class="stat-card">
+          <div class="stat-top"><span class="stat-title">Latest report year</span><span class="stat-icon amber">◷</span>
+          </div>
+          <div class="stat-number" id="statsYear">—</div>
+          <div class="stat-foot">Most recent year in the database</div>
+        </article>
+      </section>
+
+      <section class="content-grid" id="financials">
+        <article class="panel chart-panel">
+          <div class="panel-heading">
+            <div>
+              <h2>Financial snapshot</h2>
+              <p>Compare extracted metrics across company reports.</p>
+            </div><label class="select-label">Report<select id="reportSelect" aria-label="Select company report">
+                <option value="">All reports</option>
+              </select></label>
+          </div>
+          <div class="chart-wrap"><canvas id="financialChart" aria-label="Financial KPI chart"></canvas>
+            <div id="chartEmpty" class="empty-overlay">Ingest a report to see your financial snapshot.</div>
+          </div>
+          <div class="chart-legend"><span><i class="legend-dot dot-blue"></i>Revenue</span><span><i
+                class="legend-dot dot-violet"></i>Net income</span><span><i class="legend-dot dot-green"></i>Operating
+              income</span></div>
+        </article>
+        <article class="panel upload-panel" id="upload">
+          <div class="panel-heading">
+            <div>
+              <h2>Ingest a report</h2>
+              <p>Upload a company annual report PDF.</p>
+            </div><span class="panel-icon">⇧</span>
+          </div>
+          <form id="uploadForm">
+            <label class="dropzone" id="dropzone" for="fileInput"><span class="upload-symbol">↑</span><strong
+                id="fileLabel">Drop a PDF here or browse</strong><small>PDF documents · Up to 50 MB</small><input
+                type="file" id="fileInput" accept="application/pdf,.pdf" required /></label>
+            <div class="form-row"><label>Company <input id="companyInput" name="company" type="text"
+                  placeholder="e.g. Apple" /></label><label>Fiscal year <input id="yearInput" name="year"
+                  inputmode="numeric" placeholder="e.g. 2024" /></label></div>
+            <p class="helper-text">Company and year can be inferred from a filename like <code>2024_Apple.pdf</code>.
+            </p>
+            <button class="button button-primary full-width" id="uploadBtn" type="submit">Upload & analyze report
+              <span>→</span></button>
+          </form>
+          <div class="job-panel hidden" id="jobPanel" aria-live="polite">
+            <div class="job-title-row"><strong id="jobStatus">Preparing report…</strong><span id="jobPercent">0%</span>
+            </div>
+            <div class="progress-track">
+              <div class="progress-fill" id="jobProgress"></div>
+            </div>
+            <p id="jobMessage">Connecting to the ingestion API.</p>
+            <ol class="step-list" id="stepList"></ol>
+          </div>
+        </article>
+      </section>
+
+      <section class="panel table-panel">
+        <div class="panel-heading">
+          <div>
+            <h2>Extracted financial metrics</h2>
+            <p>Values returned by your existing KPI API and stored in PostgreSQL.</p>
+          </div>
+          <div class="table-tools"><input id="tableSearch" type="search" placeholder="Search company…"
+              aria-label="Search company" /><span class="record-count" id="recordCount">0 records</span></div>
+        </div>
+        <div class="table-scroll">
+          <table>
+            <thead>
+              <tr>
+                <th>Company / year</th>
+                <th>Revenue</th>
+                <th>Net income</th>
+                <th>Operating income</th>
+                <th>Operating cash flow</th>
+                <th>Total assets</th>
+                <th>Total liabilities</th>
+              </tr>
+            </thead>
+            <tbody id="metricsTableBody">
+              <tr>
+                <td colspan="7" class="table-empty">Loading KPI records…</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="panel insights-panel" id="insights">
+        <div class="panel-heading">
+          <div>
+            <h2>Company intelligence</h2>
+            <p>Explore growth drivers and risk factors extracted from a report.</p>
+          </div><label class="select-label">Company report<select id="insightSelect"
+              aria-label="Select report for insights">
+              <option value="">Select a report</option>
+            </select></label>
+        </div>
+        <div class="insight-columns">
+          <div class="insight-box growth-box">
+            <div class="insight-title"><span class="insight-badge growth-badge">↗</span>
+              <div>
+                <h3>Growth drivers</h3>
+                <p>Potential opportunities and catalysts</p>
+              </div>
+            </div>
+            <ul id="growthDriversList" class="insight-list">
+              <li class="muted-list-item">Select a report to view available insights.</li>
+            </ul>
+          </div>
+          <div class="insight-box risk-box">
+            <div class="insight-title"><span class="insight-badge risk-badge">!</span>
+              <div>
+                <h3>Risk factors</h3>
+                <p>Risks and uncertainties identified</p>
+              </div>
+            </div>
+            <ul id="riskFactorsList" class="insight-list">
+              <li class="muted-list-item">Select a report to view available insights.</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel chat-section" id="analyst">
+        <div class="panel-heading">
+          <div>
+            <h2>Ask the AI analyst</h2>
+            <p>Ask questions grounded in your ingested company reports.</p>
+          </div><span class="ai-pill">✳ RAG-powered</span>
+        </div>
+        <div class="chat-context-row"><label>Company context<select id="chatCompanySelect">
+              <option value="">All companies</option>
+            </select></label><label>Year<select id="chatYearSelect">
+              <option value="">All years</option>
+            </select></label></div>
+        <div class="chat-transcript" id="chatMessages" aria-live="polite">
+          <div class="chat-message assistant-message">
+            <div class="message-avatar">✳</div>
+            <div class="message-body"><strong>AI Analyst</strong>
+              <p>Hi! Ask me about revenue, profitability, risk factors, growth drivers, or a comparison between reports.
+              </p>
+            </div>
+          </div>
+        </div>
+        <form class="chat-form" id="chatForm"><textarea id="chatInput" rows="1"
+            placeholder="Ask a question about your reports…" required></textarea><button class="button button-primary"
+            id="sendBtn" type="submit">Send ↗</button></form>
+        <p class="chat-note">AI-generated answers may contain errors. Verify important financial decisions against the
+          source report.</p>
+      </section>
+      <footer class="page-footer">InvestorIntel <span>·</span> Connected to your existing FastAPI backend</footer>
+    </main>
+  </div>
+  <div id="toastContainer" class="toast-container" aria-live="polite"></div>
+</body>
+
+</html>
