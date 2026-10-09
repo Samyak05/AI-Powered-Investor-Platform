@@ -1,5 +1,5 @@
 /* Plain JavaScript frontend for the existing FastAPI API. Set API_BASE if the UI is hosted separately. */
-const API_BASE = 'http://localhost:8000';
+const API_BASE = 'https://ai-powered-investor-platform.onrender.com';
 const $ = (id) => document.getElementById(id);
 const state = { records: [], selectedKey: '', chart: null, history: [], jobPollTimer: null };
 const KPI_FIELDS = [
