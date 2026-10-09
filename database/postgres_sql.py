@@ -10,11 +10,22 @@ load_dotenv()
 
 def get_engine(database: str | None = None):
     """
-    Create PostgreSQL connection.
+    Create a PostgreSQL SQLAlchemy engine.
+
+    Prefer DATABASE_URL for managed PostgreSQL such as Neon.
+    Fall back to POSTGRES_* settings for local development.
 
     Args:
         database: Database name. Defaults to POSTGRES_DATABASE from .env.
     """
+    database_url = os.getenv("DATABASE_URL")
+    
+    if database_url:
+        return create_engine(
+            database_url,
+            pool_pre_ping=True,
+        )
+    
     if database is None:
         database = os.getenv("POSTGRES_DATABASE")
 
@@ -25,8 +36,8 @@ def get_engine(database: str | None = None):
     sslmode = os.getenv("POSTGRES_SSLMODE", "disable")
 
     # URL-encode credentials to handle special characters
-    encoded_user = quote(user, safe="")
-    encoded_password = quote(password, safe="")
+    encoded_user = quote(user or "", safe="")
+    encoded_password = quote(password or "", safe="")
 
     connection_string = (
         f"postgresql+psycopg2://"
@@ -34,7 +45,10 @@ def get_engine(database: str | None = None):
         f"?sslmode={sslmode}"
     )
 
-    return create_engine(connection_string)
+    return create_engine(
+        connection_string,
+        pool_pre_ping=True,
+    )
 
 
 def create_database() -> None:
